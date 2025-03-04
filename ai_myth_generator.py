@@ -1,12 +1,38 @@
+import pandas as pd
+from datasets import Dataset
+
+# Read CSV with pandas, skipping bad lines
+try:
+    df = pd.read_csv(
+        r"C:\Users\HP\my_project\ai_myth_generator\mahabharath_1-2.csv",
+        on_bad_lines="skip",  # Skip problematic rows
+        quotechar='"',         # Handle quoted fields
+        encoding='utf-8',      # Specify encoding if needed
+        error_bad_lines=False  # Skip bad lines
+    )
+    # Convert pandas DataFrame to Hugging Face Dataset
+    dataset = Dataset.from_pandas(df)
+    print("Dataset loaded successfully!")
+    print(f"Number of examples: {len(dataset)}")
+except Exception as e:
+    print(f"Failed to load dataset: {e}")
+
 import datasets
 from transformers import GPT2LMHeadModel, GPT2Tokenizer, Trainer, TrainingArguments
 
 # Load dataset (you need to actually load a dataset first)
 # Here's an example using Hugging Face Datasets
-dataset = datasets.load_dataset("csv", data_files={"train": r"C:\Users\HP\my_project\ai_myth_generator\mahabharath_1-2.csv"})  # Update path
+try:
+    dataset = datasets.load_dataset("csv", data_files={"train": r"C:\Users\HP\my_project\ai_myth_generator\mahabharath_1-2.csv"})  # Update path
+except Exception as e:
+    print(f"Error loading dataset: {e}")
+    raise
 
 # Print column names to debug
 print("Column names:", dataset["train"].column_names)
+
+# Debug: Print the first few examples to check the data
+print("First few examples:", dataset["train"][:5])
 
 # Load model and tokenizer
 tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
@@ -23,9 +49,6 @@ def tokenize_function(examples):
                     truncation=True, 
                     max_length=128,
                     padding="max_length")
-
-# Debug: Print the first few examples to check the data
-print("First few examples:", dataset["train"][:5])
 
 tokenized_dataset = dataset.map(tokenize_function, batched=True)
 
